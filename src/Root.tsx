@@ -6,7 +6,7 @@ export const RemotionRoot: React.FC = () => (
   <Composition
     id="ColdEarth"
     component={ColdEarth}
-    durationInFrames={1050}
+    durationInFrames={2040}
     fps={30}
     width={1080}
     height={1920}
