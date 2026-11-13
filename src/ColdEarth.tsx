@@ -1,112 +1,125 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame, Easing } from "remotion";
+import { AbsoluteFill, Audio, interpolate, useCurrentFrame, Easing } from "remotion";
 
-const snow = Array.from({ length: 42 }, (_, i) => ({
+const AUDIO_URL = "https://raw.githubusercontent.com/yrfwpowerytyy-art/Mn-pover-poorya-./main/public/audio/narration.mp3";
+const DURATION = 68;
+const snow = Array.from({ length: 54 }, (_, i) => ({
   left: (i * 37) % 100,
-  delay: (i * 13) % 90,
-  size: 3 + (i % 5),
-  speed: 1 + (i % 4) * 0.35,
+  delay: (i * 17) % 110,
+  size: 2 + (i % 5),
+  speed: 0.7 + (i % 4) * 0.28,
 }));
 
-const SceneTitle: React.FC<{ children: React.ReactNode; subtitle?: string }> = ({ children, subtitle }) => (
-  <div style={{ position: "absolute", top: 210, left: 70, right: 70, textAlign: "center", direction: "rtl" }}>
-    <div style={{ color: "#102b46", fontSize: 72, fontWeight: 900, lineHeight: 1.35, textShadow: "0 5px 0 rgba(255,255,255,.7)" }}>{children}</div>
-    {subtitle && <div style={{ marginTop: 22, color: "#426783", fontSize: 32, fontWeight: 700 }}>{subtitle}</div>}
+const Person: React.FC<{ x:number; y:number; scale?:number; coat?:string; skin?:string; pose?: "walk"|"stand"|"carry"; frame:number }> = ({x,y,scale=1,coat="#c6533d",skin="#d9a078",pose="stand",frame}) => {
+  const swing = pose === "walk" ? Math.sin(frame/5)*13 : 0;
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+      <ellipse cx="0" cy="5" rx="32" ry="9" fill="#526d7d" opacity=".22"/>
+      <path d={`M-18 -108 Q-27 -88 -24 -46 L-18 -18 L18 -18 L24 -47 Q26 -87 16 -108Z`} fill={coat} stroke="#344b5a" strokeWidth="3"/>
+      <path d="M-17 -102 L0 -80 L16 -102" fill="none" stroke="#f4d6bb" strokeWidth="7"/>
+      <circle cx="0" cy="-128" r="19" fill={skin} stroke="#684f43" strokeWidth="2"/>
+      <path d="M-20 -136 Q-13 -158 8 -150 Q21 -145 19 -132 Q4 -142 -9 -134Z" fill="#493b34"/>
+      <path d={`M-13 -18 L-18 0 L-20 36 L-5 36 L0 0 L7 36 L22 36 L17 -18Z`} fill="#293f50" stroke="#243847" strokeWidth="3"/>
+      <path d={`M-22 -92 L-35 -56 L-31 -35 M22 -92 L35 -58 L${pose==="carry"?48:31} -43`} fill="none" stroke={coat} strokeWidth="12" strokeLinecap="round"/>
+      <path d={`M-20 35 L-27 43 L-4 43 L-3 35 M15 35 L10 43 L34 43 L28 35`} fill="#302c2b"/>
+      {pose==="carry" && <g transform="translate(49 -37)"><rect x="-13" y="-16" width="27" height="31" rx="3" fill="#bd8a4d" stroke="#72502e" strokeWidth="2"/><path d="M-10 -8 H11 M-10 0 H11" stroke="#f3d5a0" strokeWidth="3"/></g>}
+      <g transform={`translate(0 0) rotate(${swing})`} />
+    </g>
+  );
+};
+
+const City: React.FC<{frame:number}> = ({frame}) => {
+  const drift = interpolate(frame,[0,2040],[0,-52],{extrapolateRight:"clamp"});
+  return <div style={{position:"absolute",inset:0,transform:`translateX(${drift}px)`}}>
+    <svg width="100%" height="100%" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1"><stop stopColor="#8ec5e8"/><stop offset=".52" stopColor="#e5b6a0"/><stop offset="1" stopColor="#e8edf0"/></linearGradient>
+        <linearGradient id="snowRoad" x1="0" x2="0" y1="0" y2="1"><stop stopColor="#e9f1f3"/><stop offset="1" stopColor="#9fb6c2"/></linearGradient>
+      </defs>
+      <rect width="1080" height="1920" fill="url(#sky)"/>
+      <circle cx="830" cy="340" r="110" fill="#ffe2b2" opacity=".75"/>
+      <path d="M0 900 L1080 850 L1080 1920 L0 1920Z" fill="url(#snowRoad)"/>
+      <g stroke="#56616a" strokeWidth="5">
+        <path d="M-30 600 L220 520 L420 600 L420 1280 L-30 1280Z" fill="#c77f63"/>
+        <path d="M390 510 L600 440 L820 510 L820 1260 L390 1260Z" fill="#d6c5a2"/>
+        <path d="M790 650 L940 600 L1110 650 L1110 1290 L790 1290Z" fill="#6d9b9c"/>
+        <path d="M-20 590 L220 510 L440 590" fill="none" stroke="#f5eee3" strokeWidth="26"/>
+        <path d="M380 500 L600 430 L835 500" fill="none" stroke="#f4e9d5" strokeWidth="25"/>
+        <path d="M780 640 L940 585 L1120 640" fill="none" stroke="#e5efeb" strokeWidth="25"/>
+      </g>
+      <g fill="#334f61">
+        {Array.from({length:24},(_,i)=><rect key={i} x={18+(i%6)*62} y={690+Math.floor(i/6)*115} width="31" height="53" rx="4"/>)}
+        {Array.from({length:24},(_,i)=><rect key={"b"+i} x={430+(i%6)*58} y={610+Math.floor(i/6)*115} width="29" height="52" rx="4"/>)}
+        {Array.from({length:12},(_,i)=><rect key={"c"+i} x={830+(i%4)*58} y={740+Math.floor(i/4)*115} width="28" height="52" rx="4"/>)}
+      </g>
+      <path d="M0 1270 Q250 1200 520 1275 T1080 1245 L1080 1920 L0 1920Z" fill="#f6fbfc"/>
+      <path d="M0 1480 Q260 1380 540 1470 T1080 1440" fill="none" stroke="#fff" strokeWidth="38" opacity=".85"/>
+    </svg>
+    <svg style={{position:"absolute",inset:0,width:"100%",height:"100%"}} viewBox="0 0 1080 1920">
+      <Person x={260} y={1470} scale={1.18} coat="#b84e38" pose="walk" frame={frame}/>
+      <Person x={470} y={1495} scale={.98} coat="#347b88" pose="stand" frame={frame}/>
+      <Person x={790} y={1470} scale={1.1} coat="#d2a24e" pose="carry" frame={frame}/>
+      <path d="M100 1520 H980" stroke="#8fa8b4" strokeWidth="8" opacity=".5"/>
+    </svg>
+  </div>;
+};
+
+const Shop: React.FC<{frame:number}> = ({frame}) => <div style={{position:"absolute",inset:0,opacity:interpolate(frame,[390,450,930,990],[0,1,1,0],{extrapolateRight:"clamp"})}}>
+  <div style={{position:"absolute",inset:0,background:"linear-gradient(145deg,#f1dfc6,#c9d8d5 55%,#829da4)"}}/>
+  <div style={{position:"absolute",top:300,left:55,right:55,height:900,background:"#f7f0df",border:"14px solid #7e6752",borderRadius:24,boxShadow:"0 30px 60px #425b6540"}}/>
+  <div style={{position:"absolute",top:360,left:90,right:90,display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14}}>
+    {["#d45b42","#e4b64e","#6d9b73","#6e91b8"].map((c,i)=><div key={i} style={{height:180,background:c,borderRadius:14,border:"5px solid #fff",boxShadow:"0 7px 12px #314b5530"}}/>)}
   </div>
-);
+  {[0,1,2].map(row=><div key={row} style={{position:"absolute",top:590+row*205,left:90,right:90,height:18,background:"#876b50",borderRadius:9}}/>)}
+  <div style={{position:"absolute",top:640,left:110,right:110,display:"flex",gap:18,justifyContent:"space-around"}}>
+    {Array.from({length:15},(_,i)=><div key={i} style={{width:45,height:95,marginTop:(i%3)*13,background:["#d9a441","#b94f43","#739b78","#d5e0e3"][i%4],borderRadius:"9px 9px 5px 5px",border:"3px solid #f8f3e9"}}/>)}
+  </div>
+  <div style={{position:"absolute",bottom:240,left:0,right:0,display:"flex",justifyContent:"space-evenly",alignItems:"end"}}>
+    <svg width="80%" height="360" viewBox="0 0 800 360"><Person x={210} y={320} scale={1.45} coat="#bd5543" pose="carry" frame={frame}/><Person x={520} y={320} scale={1.3} coat="#3c718a" pose="stand" frame={frame}/></svg>
+  </div>
+</div>;
 
-const Snow: React.FC<{ frame: number }> = ({ frame }) => (
-  <>
-    {snow.map((s, i) => {
-      const y = ((frame * s.speed + s.delay * 12) % 2200) - 100;
-      return <div key={i} style={{ position: "absolute", left: s.left + "%", top: y, width: s.size, height: s.size, borderRadius: 99, background: "rgba(255,255,255,.9)", boxShadow: "0 0 12px rgba(255,255,255,.8)" }} />;
-    })}
-  </>
-);
+const Snow: React.FC<{frame:number}> = ({frame}) => <>{snow.map((s,i)=>{
+  const y=((frame*s.speed+s.delay*16)%2050)-50;
+  return <div key={i} style={{position:"absolute",left:s.left+"%",top:y,width:s.size,height:s.size,borderRadius:99,background:"rgba(255,255,255,.92)",boxShadow:"0 0 10px #fff"}}/>;
+})}</>;
 
-const City: React.FC<{ frame: number }> = ({ frame }) => {
-  const drift = interpolate(frame, [0, 1050], [0, -34], { extrapolateRight: "clamp" });
-  return (
-    <div style={{ position: "absolute", bottom: 0, width: "100%", height: 820, transform: `translateX(${drift}px)` }}>
-      <svg width="100%" height="100%" viewBox="0 0 1080 820" preserveAspectRatio="xMidYMax slice">
-        <defs>
-          <linearGradient id="building" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#d8eaf5"/><stop offset="1" stopColor="#8db5d1"/></linearGradient>
-          <linearGradient id="snowground" x1="0" x2="0" y1="0" y2="1"><stop stopColor="#f7fcff"/><stop offset="1" stopColor="#b8d8eb"/></linearGradient>
-        </defs>
-        <path d="M0 480 L1080 430 L1080 820 L0 820Z" fill="url(#snowground)"/>
-        <g fill="url(#building)" stroke="#739ab7" strokeWidth="5">
-          <path d="M30 280 L210 230 L390 280 L390 620 L30 620Z"/>
-          <path d="M420 210 L600 160 L780 210 L780 620 L420 620Z"/>
-          <path d="M810 300 L930 260 L1050 300 L1050 620 L810 620Z"/>
-        </g>
-        <g fill="#f5fbff" opacity=".95">
-          <path d="M20 280 L210 220 L400 280 L390 300 L210 255 L30 300Z"/>
-          <path d="M410 210 L600 150 L790 210 L780 230 L600 185 L420 230Z"/>
-          <path d="M800 300 L930 250 L1060 300 L1050 320 L930 285 L810 320Z"/>
-        </g>
-        <g fill="#4f7898">
-          {Array.from({length: 18}, (_,i) => <rect key={i} x={62+(i%6)*52} y={330+Math.floor(i/6)*95} width="24" height="42" rx="5"/>)}
-          {Array.from({length: 18}, (_,i) => <rect key={i} x={452+(i%6)*52} y={265+Math.floor(i/6)*100} width="24" height="44" rx="5"/>)}
-          {Array.from({length: 8}, (_,i) => <rect key={i} x={845+(i%4)*48} y={355+Math.floor(i/4)*100} width="22" height="42" rx="5"/>)}
-        </g>
-        <path d="M0 620 Q270 560 540 620 T1080 610 L1080 820 L0 820Z" fill="#eaf6fc"/>
-        <path d="M0 700 Q260 640 520 700 T1080 680" fill="none" stroke="#fff" strokeWidth="20" opacity=".8"/>
-      </svg>
+const Caption: React.FC<{frame:number;start:number;end:number;title:string;sub?:string}> = ({frame,start,end,title,sub}) => {
+  const opacity=interpolate(frame,[start,start+16,end-16,end],[0,1,1,0],{extrapolateRight:"clamp"});
+  return <div style={{position:"absolute",top:260,left:55,right:55,textAlign:"center",direction:"rtl",opacity,transform:`translateY(${(1-opacity)*22}px)`}}>
+    <div style={{display:"inline-block",padding:"22px 34px",borderRadius:28,background:"rgba(255,250,239,.92)",border:"2px solid rgba(255,255,255,.95)",boxShadow:"0 18px 50px #334c5a25"}}>
+      <div style={{fontSize:49,fontWeight:950,color:"#263f4c",lineHeight:1.45}}>{title}</div>
+      {sub&&<div style={{fontSize:28,fontWeight:750,color:"#6a6258",marginTop:10}}>{sub}</div>}
     </div>
-  );
-};
-
-const Thermometer: React.FC<{ frame: number }> = ({ frame }) => {
-  const scale = interpolate(frame, [0, 170, 300], [0, 1, 1], { extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
-  return (
-    <div style={{ position: "absolute", top: 590, left: 110, right: 110, display: "flex", justifyContent: "center", alignItems: "center", gap: 24 }}>
-      <div style={{ width: 24, height: 230, borderRadius: 30, border: "7px solid #fff", background: "rgba(90,155,195,.25)", overflow: "hidden", display: "flex", alignItems: "end" }}>
-        <div style={{ width: "100%", height: 180*scale, background: "#3a9ee8", borderRadius: 20, boxShadow: "0 0 30px #65c8ff" }}/>
-      </div>
-      <div style={{ color: "#0c3658", fontSize: 116, fontWeight: 950, letterSpacing: -5, textShadow: "0 5px 0 #fff" }}>−۵۰°</div>
-    </div>
-  );
-};
-
-const MoneyCard: React.FC<{ frame: number }> = ({ frame }) => {
-  const show = interpolate(frame, [520, 570, 1020, 1050], [0, 1, 1, 0], { extrapolateRight: "clamp" });
-  return (
-    <div style={{ position: "absolute", top: 560, left: 90, right: 90, opacity: show, transform: `translateY(${(1-show)*35}px)`, background: "rgba(255,255,255,.88)", border: "3px solid rgba(255,255,255,.95)", borderRadius: 34, padding: "28px 34px", boxShadow: "0 24px 70px rgba(28,78,111,.15)", direction: "rtl", textAlign: "center" }}>
-      <div style={{ color: "#5b7d96", fontSize: 30, fontWeight: 800 }}>بودجه‌ی تو</div>
-      <div style={{ color: "#0c426d", fontSize: 76, fontWeight: 950, marginTop: 8 }}>۱۰ میلیون تومان</div>
-      <div style={{ color: "#397da9", fontSize: 27, marginTop: 10 }}>برای آماده شدن در سرمای شدید</div>
-    </div>
-  );
+  </div>;
 };
 
 export const ColdEarth: React.FC = () => {
-  const frame = useCurrentFrame();
-  const introOpacity = interpolate(frame, [0, 20, 145, 175], [0, 1, 1, 0], { extrapolateRight: "clamp" });
-  const shopOpacity = interpolate(frame, [300, 340, 500, 535], [0, 1, 1, 0], { extrapolateRight: "clamp" });
-  const endOpacity = interpolate(frame, [850, 900, 1050], [0, 1, 1], { extrapolateRight: "clamp" });
-  const pulse = 1 + Math.sin(frame / 8) * 0.018;
-
-  return (
-    <AbsoluteFill style={{ background: "linear-gradient(180deg,#d9f0ff 0%,#a8d3ec 52%,#f4fbff 100%)", fontFamily: "Arial, sans-serif", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 50% 30%,rgba(255,255,255,.9),transparent 48%)" }}/>
-      <City frame={frame}/>
-      <Snow frame={frame}/>
-      <div style={{ position: "absolute", top: 70, left: 70, right: 70, display: "flex", justifyContent: "space-between", color: "#47718f", fontSize: 25, fontWeight: 900, letterSpacing: 2 }}>
-        <span>WHAT IF?</span><span>01 / 30</span>
+  const frame=useCurrentFrame();
+  const seconds=frame/30;
+  const cold=interpolate(frame,[0,280,600,2040],[0,.35,.8,1],{extrapolateRight:"clamp"});
+  const budget=interpolate(frame,[930,1020,1740],[0,1,1],{extrapolateRight:"clamp"});
+  return <AbsoluteFill style={{background:"#dbe9ed",fontFamily:"Arial, sans-serif",overflow:"hidden"}}>
+    <Audio src={AUDIO_URL} volume={1}/>
+    <City frame={frame}/>
+    <Shop frame={frame}/>
+    <div style={{position:"absolute",inset:0,background:`rgba(145,190,215,${cold*.18})`,pointerEvents:"none"}}/>
+    <Snow frame={frame}/>
+    <div style={{position:"absolute",top:62,left:55,right:55,display:"flex",justifyContent:"space-between",fontSize:24,fontWeight:900,color:"#344e5c",textShadow:"0 1px 0 #fff"}}>
+      <span>WHAT IF?</span><span>−۵۰°C</span>
+    </div>
+    <Caption frame={frame} start={0} end={270} title="تصور کن فردا صبح..." sub="دمای زمین به منفی ۵۰ درجه رسیده"/>
+    <Caption frame={frame} start={285} end={600} title="شهر در چند ساعت یخ می‌زند" sub="مردم برای خرید آخرین وسایل ضروری عجله دارند"/>
+    <Caption frame={frame} start={615} end={960} title="فروشگاه‌ها به‌سرعت خالی می‌شوند" sub="باید هوشمندانه انتخاب کنی"/>
+    <div style={{position:"absolute",top:1060,left:70,right:70,opacity:budget,transform:`scale(${.96+budget*.04})`,textAlign:"center",direction:"rtl"}}>
+      <div style={{display:"inline-block",padding:"24px 38px",borderRadius:26,background:"rgba(255,250,239,.94)",boxShadow:"0 18px 50px #263f4c30"}}>
+        <div style={{fontSize:28,color:"#786d5d",fontWeight:800}}>بودجه‌ی تو</div>
+        <div style={{fontSize:70,color:"#2e604f",fontWeight:950}}>۱۰ میلیون تومان</div>
       </div>
-      <div style={{ opacity: introOpacity }}>
-        <SceneTitle subtitle="فقط یک شب تا تغییر همه‌چیز">اگه فردا صبح...</SceneTitle>
-        <Thermometer frame={frame}/>
-      </div>
-      <div style={{ position: "absolute", top: 900, left: 70, right: 70, textAlign: "center", direction: "rtl", opacity: shopOpacity, transform: `scale(${pulse})` }}>
-        <div style={{ display: "inline-block", background: "rgba(255,255,255,.9)", borderRadius: 28, padding: "24px 38px", color: "#123c5c", fontSize: 48, fontWeight: 950, boxShadow: "0 15px 50px rgba(25,80,120,.12)" }}>فروشگاه‌ها در آستانه‌ی خالی شدن‌اند!</div>
-      </div>
-      <MoneyCard frame={frame}/>
-      <div style={{ position: "absolute", bottom: 190, left: 65, right: 65, textAlign: "center", direction: "rtl", opacity: endOpacity }}>
-        <div style={{ color: "#103d61", fontSize: 54, lineHeight: 1.5, fontWeight: 950, textShadow: "0 3px 0 #fff" }}>اولین کاری که می‌کنی چیه؟</div>
-        <div style={{ color: "#47718f", fontSize: 26, fontWeight: 800, marginTop: 14 }}>تصمیم تو می‌تونه همه‌چیز رو تغییر بده</div>
-      </div>
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", boxShadow: "inset 0 0 100px rgba(37,94,130,.12)" }}/>
-    </AbsoluteFill>
-  );
+    </div>
+    <Caption frame={frame} start={1050} end={1480} title="فقط چیزهای ضروری را بردار" sub="غذا، آب و وسایل موردنیاز"/>
+    <Caption frame={frame} start={1490} end={1770} title="برق ممکن است هر لحظه قطع شود" sub="برای سرمای طولانی آماده شو"/>
+    <Caption frame={frame} start={1780} end={2040} title="اولین تصمیم تو چیست؟" sub="آمادگی، از همین لحظه شروع می‌شود"/>
+    <div style={{position:"absolute",inset:0,pointerEvents:"none",boxShadow:"inset 0 0 100px rgba(55,83,94,.12)"}}/>
+  </AbsoluteFill>;
 };
